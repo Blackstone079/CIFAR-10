@@ -74,8 +74,7 @@ def main():
         torch.backends.cudnn.benchmark = True
 
     pin_memory = (device.type == "cuda") if config["pin_memory"] == "auto" else config["pin_memory"]
-
-    run_dir = prepare_run_dir(config["run_name"])
+    run_dir = prepare_run_dir(config["run_root"], config["run_name"])
 
     config["device"] = str(device)
     config["torch_version"] = torch.__version__
@@ -128,7 +127,6 @@ def main():
 
         row = {"epoch": epoch, "lr": current_lr, "train_loss": train_loss, "train_acc": train_acc, "test_loss": test_loss, "test_acc": test_acc, "train_time_s": train_time, "eval_time_s": eval_time, "epoch_time_s": epoch_time, "total_time_s": total_time, "best_acc_so_far": best_acc}
         append_metrics_row(run_dir / "metrics.csv", row)
-
         save_checkpoint(run_dir / "last.pt", epoch, model, optimizer, scheduler, best_acc, config)
 
         if do_eval:
