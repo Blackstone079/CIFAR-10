@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from data import get_cifar10_dataloaders
-from models.resnet_cifar import ResNet
+from models.resnet_cifar_custom4stage import ResNet
 
 def train_one_epoch(model, train_loader, criterion, optimizer, device):
     model.train()
