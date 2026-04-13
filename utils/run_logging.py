@@ -20,8 +20,8 @@ def save_checkpoint(path, epoch, model, optimizer, scheduler, best_acc, config):
     checkpoint = {"epoch": epoch, "model_state_dict": model.state_dict(), "optimizer_state_dict": optimizer.state_dict(), "scheduler_state_dict": scheduler.state_dict(), "best_acc": best_acc, "config": config}
     torch.save(checkpoint, path)
 
-def prepare_run_dir(run_name):
+def prepare_run_dir(run_root, run_name):
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    run_dir = Path("runs") / f"{timestamp}_{run_name}"
+    run_dir = Path(run_root) / f"{timestamp}_{run_name}"
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir
