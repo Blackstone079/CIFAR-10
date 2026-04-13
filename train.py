@@ -5,13 +5,14 @@ import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.amp import autocast, GradScaler
 
 from data import get_cifar10_dataloaders
 from models.resnet_cifar_custom4stage import ResNet as Custom4StageResNet
-from utils.run_logging import save_json, append_metrics_row, save_checkpoint, prepare_run_dir
 from models.resnet20_cifar import ResNet20
+from utils.run_logging import save_json, append_metrics_row, save_checkpoint, prepare_run_dir
 
-def train_one_epoch(model, train_loader, criterion, optimizer, device):
+def train_one_epoch(model, train_loader, criterion, optimizer, device, scaler, use_amp):
     model.train()
     total_loss = 0.0
     total_correct = 0
@@ -21,11 +22,19 @@ def train_one_epoch(model, train_loader, criterion, optimizer, device):
         images = images.to(device, non_blocking=True)
         labels = labels.to(device, non_blocking=True)
 
-        optimizer.zero_grad()
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+        optimizer.zero_grad(set_to_none=True)
+
+        with autocast(device_type=device.type, enabled=use_amp):
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+
+        if use_amp:
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            optimizer.step()
 
         batch_size = images.size(0)
         total_loss += loss.item() * batch_size
@@ -36,7 +45,7 @@ def train_one_epoch(model, train_loader, criterion, optimizer, device):
     return total_loss / total_samples, total_correct / total_samples
 
 @torch.no_grad()
-def evaluate(model, test_loader, criterion, device):
+def evaluate(model, test_loader, criterion, device, use_amp):
     model.eval()
     total_loss = 0.0
     total_correct = 0
@@ -46,8 +55,9 @@ def evaluate(model, test_loader, criterion, device):
         images = images.to(device, non_blocking=True)
         labels = labels.to(device, non_blocking=True)
 
-        outputs = model(images)
-        loss = criterion(outputs, labels)
+        with autocast(device_type=device.type, enabled=use_amp):
+            outputs = model(images)
+            loss = criterion(outputs, labels)
 
         batch_size = images.size(0)
         total_loss += loss.item() * batch_size
@@ -76,17 +86,22 @@ def main():
     if device.type == "cuda":
         torch.backends.cudnn.benchmark = True
 
+    use_amp = (device.type == "cuda")
+    scaler = GradScaler("cuda", enabled=use_amp)
+
     pin_memory = (device.type == "cuda") if config["pin_memory"] == "auto" else config["pin_memory"]
     run_dir = prepare_run_dir(config["run_root"], config["run_name"])
 
     config["device"] = str(device)
     config["torch_version"] = torch.__version__
+    config["amp"] = use_amp
     save_json(run_dir / "config.json", config)
 
     with open(run_dir / "notes.txt", "w") as f:
         f.write("Logged training run.\n")
 
     train_loader, test_loader = get_cifar10_dataloaders(batch_size=config["batch_size"], test_batch_size=config["test_batch_size"], data_root=config["data_root"], num_workers=config["num_workers"], pin_memory=pin_memory, augmentation=config.get("augmentation", False), train_subset_size=config.get("train_subset_size"), test_subset_size=config.get("test_subset_size"), seed=config.get("seed", 0))
+
     model = build_model(config["model_name"]).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=config["momentum"], weight_decay=config["weight_decay"])
@@ -101,12 +116,13 @@ def main():
 
     print(f"Run directory: {run_dir}")
     print(f"Device: {device}")
+    print(f"AMP enabled: {use_amp}")
 
     for epoch in range(1, config["epochs"] + 1):
         epoch_start = time.time()
 
         train_start = time.time()
-        train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device, scaler, use_amp)
         train_time = time.time() - train_start
 
         test_loss = ""
@@ -116,7 +132,7 @@ def main():
         do_eval = (epoch == 1) or (epoch % config["eval_every"] == 0) or (epoch == config["epochs"])
         if do_eval:
             eval_start = time.time()
-            test_loss, test_acc = evaluate(model, test_loader, criterion, device)
+            test_loss, test_acc = evaluate(model, test_loader, criterion, device, use_amp)
             eval_time = time.time() - eval_start
 
             if test_acc > best_acc:
