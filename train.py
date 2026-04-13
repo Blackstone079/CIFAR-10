@@ -9,6 +9,7 @@ import torch.optim as optim
 from data import get_cifar10_dataloaders
 from models.resnet_cifar_custom4stage import ResNet as Custom4StageResNet
 from utils.run_logging import save_json, append_metrics_row, save_checkpoint, prepare_run_dir
+from models.resnet20_cifar import ResNet20
 
 def train_one_epoch(model, train_loader, criterion, optimizer, device):
     model.train()
@@ -59,6 +60,8 @@ def evaluate(model, test_loader, criterion, device):
 def build_model(model_name):
     if model_name == "custom4stage":
         return Custom4StageResNet()
+    if model_name == "resnet20":
+        return ResNet20()
     raise ValueError(f"Unknown model_name: {model_name}")
 
 def main():
@@ -83,8 +86,7 @@ def main():
     with open(run_dir / "notes.txt", "w") as f:
         f.write("Logged training run.\n")
 
-    train_loader, test_loader = get_cifar10_dataloaders(batch_size=config["batch_size"], test_batch_size=config["test_batch_size"], data_root=config["data_root"], num_workers=config["num_workers"], pin_memory=pin_memory)
-
+    train_loader, test_loader = get_cifar10_dataloaders(batch_size=config["batch_size"], test_batch_size=config["test_batch_size"], data_root=config["data_root"], num_workers=config["num_workers"], pin_memory=pin_memory, augmentation=config.get("augmentation", False), train_subset_size=config.get("train_subset_size"), test_subset_size=config.get("test_subset_size"), seed=config.get("seed", 0))
     model = build_model(config["model_name"]).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=config["momentum"], weight_decay=config["weight_decay"])
