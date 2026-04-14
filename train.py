@@ -85,6 +85,8 @@ def build_model(model_name):
         return Custom4StageResNet()
     if model_name == "resnet20":
         return ResNet20()
+    if model_name == "resnet8":
+        return ResNet8()
     raise ValueError(f"Unknown model_name: {model_name}")
 
 
