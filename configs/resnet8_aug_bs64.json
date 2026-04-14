@@ -1,0 +1,21 @@
+{
+  "run_name": "resnet8_aug_bs64",
+  "model_name": "resnet8"
+  "batch_size": 64,
+  "test_batch_size": 64,
+  "epochs": 200,
+  "lr": 0.1,
+  "momentum": 0.9,
+  "weight_decay": 0.0005,
+  "scheduler": "MultiStepLR",
+  "milestones": [100, 150],
+  "gamma": 0.1,
+  "eval_every": 5,
+  "data_root": "/content/cifar_data",
+  "run_root": "/content/CIFAR10_runs/full",
+  "drive_run_root": "/content/drive/MyDrive/CIFAR-10/CIFAR10_runs/full",
+  "num_workers": 2,
+  "pin_memory": "auto",
+  "augmentation": true,
+  "seed": 0
+}
