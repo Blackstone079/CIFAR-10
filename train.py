@@ -10,6 +10,7 @@ from torch.amp import autocast, GradScaler
 from data import get_cifar10_dataloaders
 from models.resnet_cifar_custom4stage import ResNet as Custom4StageResNet
 from models.resnet20_cifar import ResNet20
+from models.resnet8_cifar import ResNet8
 from utils.run_logging import (
     save_json,
     save_text,
