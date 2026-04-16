@@ -12,8 +12,10 @@
   "gamma": 0.1,
   "eval_every": 5,
   "data_root": "/content/cifar_data",
-  "run_root": "/content/drive/MyDrive/CIFAR10_runs",
+  "run_root": "/content/CIFAR10_runs/full",
+  "drive_run_root": "/content/drive/MyDrive/CIFAR-10/CIFAR10_runs/full",
   "num_workers": 2,
   "pin_memory": "auto",
-  "augmentation": false
+  "augmentation": false,
+  "seed": 0
 }
