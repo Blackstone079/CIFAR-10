@@ -11,10 +11,7 @@ import torch
 def validate_run_roots(run_root, drive_run_root=None):
     run_root = Path(run_root).as_posix()
     if run_root.startswith("/content/drive/"):
-        raise ValueError(
-            "run_root must be a local path such as /content/CIFAR10_runs/full. "
-            "Use drive_run_root for the Google Drive mirror."
-        )
+        raise ValueError("run_root must be a local path such as /content/CIFAR10_runs/full. Use drive_run_root for the Google Drive mirror.")
     if drive_run_root is not None:
         Path(drive_run_root).mkdir(parents=True, exist_ok=True)
 
@@ -47,6 +44,7 @@ def append_metrics_row(csv_path, row_dict):
     csv_path = Path(csv_path)
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     file_exists = csv_path.exists()
+
     with open(csv_path, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=row_dict.keys())
         if not file_exists:
@@ -88,11 +86,14 @@ def prepare_drive_run_dir(drive_run_root, run_dir_name):
 def mirror_file(src_path, dst_dir):
     if dst_dir is None:
         return
+
     src_path = Path(src_path)
     if not src_path.exists():
         return
+
     dst_dir = Path(dst_dir)
     dst_dir.mkdir(parents=True, exist_ok=True)
+
     dst_path = dst_dir / src_path.name
     tmp_path = dst_path.with_name(dst_path.name + ".tmp")
     shutil.copy2(src_path, tmp_path)
