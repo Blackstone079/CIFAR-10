@@ -32,12 +32,7 @@ class BasicBlock(nn.Module):
 class ResNet8(nn.Module):
     def __init__(self, base_width=16, num_classes=10):
         super().__init__()
-        self.base_width = base_width
-        self.num_classes = num_classes
-
-        c1 = base_width
-        c2 = 2 * base_width
-        c3 = 4 * base_width
+        c1, c2, c3 = base_width, 2 * base_width, 4 * base_width
 
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=c1, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(num_features=c1)
