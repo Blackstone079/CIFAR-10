@@ -1,8 +1,8 @@
 {
-  "run_name": "resnet8w28_aug_bs64",
+  "run_name": "resnet8w24_aug_bs64",
   "model_name": "resnet8",
   "model_kwargs": {
-    "base_width": 28
+    "base_width": 24
   },
   "batch_size": 64,
   "test_batch_size": 64,
