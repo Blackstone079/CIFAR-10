@@ -2,6 +2,7 @@ import argparse
 import json
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 import torch
@@ -63,12 +64,30 @@ def measure_latency(model, device, batch_size, warmup=20, iters=100):
     }
 
 
+def default_output_path(config_path, config):
+    config_path = Path(config_path)
+    drive_run_root = config.get("drive_run_root")
+
+    if drive_run_root:
+        measurements_root = Path(drive_run_root).parent / "measurements"
+    else:
+        measurements_root = Path("/content/drive/MyDrive/CIFAR-10/CIFAR10_runs/measurements")
+
+    measurements_root.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    device_tag = "cuda" if torch.cuda.is_available() else "cpu"
+    filename = f"{timestamp}_{config_path.stem}_{device_tag}_measure.json"
+    return measurements_root / filename
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True)
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
     parser.add_argument("--warmup", type=int, default=20)
     parser.add_argument("--iters", type=int, default=100)
+    parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
     with open(args.config, "r") as f:
@@ -83,6 +102,7 @@ def main():
 
     result = {
         "config": args.config,
+        "run_name": config.get("run_name"),
         "model_name": config["model_name"],
         "model_kwargs": config.get("model_kwargs", {}),
         "device": str(device),
@@ -91,7 +111,14 @@ def main():
         "latency_bs64": measure_latency(model, device, batch_size=64, warmup=args.warmup, iters=args.iters)
     }
 
+    out_path = Path(args.out) if args.out else default_output_path(args.config, config)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(out_path, "w") as f:
+        json.dump(result, f, indent=2)
+
     print(json.dumps(result, indent=2))
+    print(f"\nSaved to: {out_path}")
 
 
 if __name__ == "__main__":
