@@ -1,8 +1,14 @@
 import argparse
 import json
+import sys
 import time
+from pathlib import Path
 
 import torch
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from models.resnet_cifar_custom4stage import ResNet as Custom4StageResNet
 from models.resnet20_cifar import ResNet20
@@ -41,11 +47,13 @@ def measure_latency(model, device, batch_size, warmup=20, iters=100):
     start = time.perf_counter()
     for _ in range(iters):
         _ = model(x)
+
     if device.type == "cuda":
         torch.cuda.synchronize()
-    end = time.perf_counter()
 
+    end = time.perf_counter()
     total_s = end - start
+
     return {
         "batch_size": batch_size,
         "iters": iters,
