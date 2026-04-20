@@ -23,7 +23,7 @@
   "seed": 0,
   "distillation": {
     "enabled": true,
-    "teacher_checkpoint": "/content/drive/MyDrive/CIFAR-10/CIFAR10_runs/full/resnet20_aug_bs64/best.pt"
+    "teacher_checkpoint": "/content/drive/MyDrive/CIFAR-10/CIFAR10_runs/full/resnet20_aug_bs64/best.pt",
     "alpha": 0.5,
     "temperature": 4.0
   }
