@@ -18,7 +18,7 @@ def load_teacher_from_checkpoint(checkpoint_path, build_model, device):
     if not checkpoint_path.exists():
         raise FileNotFoundError(f"Teacher checkpoint not found: {checkpoint_path}")
 
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     if "config" not in checkpoint or "model_state_dict" not in checkpoint:
         raise ValueError(f"Checkpoint at {checkpoint_path} does not contain config/model_state_dict.")
 
