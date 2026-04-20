@@ -133,6 +133,8 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=config["momentum"], weight_decay=config["weight_decay"])
     if config["scheduler"] == "MultiStepLR":
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=config["milestones"], gamma=config["gamma"])
+    if config["scheduler"] == "CosineAnnealingLR":
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config["epochs"], eta_min=0)
     else:
         raise ValueError(f"Unknown scheduler: {config['scheduler']}")
 
