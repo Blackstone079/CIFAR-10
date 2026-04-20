@@ -10,7 +10,7 @@
   "lr": 0.1,
   "momentum": 0.9,
   "weight_decay": 0.0005,
-  "scheduler": "MultiStepLR",
+  "scheduler": "CosineAnnealingLR",
   "milestones": [100, 150],
   "gamma": 0.1,
   "eval_every": 5,
@@ -24,7 +24,7 @@
   "distillation": {
     "enabled": true,
     "teacher_checkpoint": "/content/drive/MyDrive/CIFAR-10/CIFAR10_runs/full/resnet20_aug_bs64/best.pt",
-    "alpha": 0.5,
+    "alpha": 0.3,
     "temperature": 4.0
   }
 }
