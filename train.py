@@ -10,6 +10,7 @@ from torch.amp import GradScaler, autocast
 from data import get_cifar10_dataloaders
 from models.resnet_cifar_custom4stage import ResNet as Custom4StageResNet
 from models.resnet20_cifar import ResNet20
+from models.resnet14_cifar import ResNet14
 from models.resnet8_cifar import ResNet8
 from utils.distillation import build_distillation, compute_distillation_loss
 from utils.run_logging import append_metrics_row, mirror_run_files, prepare_drive_run_dir, prepare_run_dir, save_checkpoint, save_json, save_text, validate_run_roots
@@ -86,12 +87,16 @@ def evaluate(model, test_loader, criterion, device, use_amp):
 
 def build_model(model_name, model_kwargs=None):
     model_kwargs = {} if model_kwargs is None else dict(model_kwargs)
+
     if model_name == "custom4stage":
         return Custom4StageResNet(**model_kwargs)
-    if model_name == "resnet20":
-        return ResNet20(**model_kwargs)
     if model_name == "resnet8":
         return ResNet8(**model_kwargs)
+    if model_name == "resnet14":
+        return ResNet14(**model_kwargs)
+    if model_name == "resnet20":
+        return ResNet20(**model_kwargs)
+
     raise ValueError(f"Unknown model_name: {model_name}")
 
 def main():
@@ -131,6 +136,7 @@ def main():
     kd_state = build_distillation(config, build_model, device)
 
     optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=config["momentum"], weight_decay=config["weight_decay"])
+
     if config["scheduler"] == "MultiStepLR":
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=config["milestones"], gamma=config["gamma"])
     elif config["scheduler"] == "CosineAnnealingLR":
